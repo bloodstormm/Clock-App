@@ -8,7 +8,8 @@ import upArrow from "./assets/upArrow.svg";
 import Flip from "gsap/Flip";
 
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Skeleton } from "./components/Skelekton";
 
 type LocationInfos = {
   utc: string;
@@ -19,7 +20,6 @@ type LocationInfos = {
 };
 
 function App() {
-  gsap.registerPlugin(Flip);
   const [openInfo, setOpenInfo] = useState(false);
 
   const [locationInfo, setLocationInfo] = useState<LocationInfos>();
@@ -58,6 +58,30 @@ function App() {
     isLoading.current = false;
   };
 
+  const tl = useRef<GSAPTimeline | null>(null);
+  const app = useRef();
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.set(".infoContainer", { yPercent: 100, opacity: 1 });
+      tl.current = gsap
+        .timeline({
+          paused: true,
+          defaults: {
+            ease: "power3.inOut",
+          },
+        })
+        .to(".infoContainer", { yPercent: 0 })
+        .to(".clockContainer", { y: "-40vh" }, "<")
+        .to(".quotes", { y: -100, opacity: 0 }, "<")
+        .reverse();
+    }, app);
+    return () => ctx.revert();
+  }, []);
+
+  useLayoutEffect(() => {
+    tl.current!.reversed(!openInfo);
+  }, [openInfo]);
+
   useEffect(() => {
     handleLocation();
   }, []);
@@ -84,13 +108,16 @@ function App() {
   };
 
   return (
-    <main className="flex h-screen flex-col overflow-y-hidden bg-orange-900/30">
+    <main
+      className="flex h-screen flex-col overflow-y-hidden bg-orange-900/30"
+      ref={app}
+    >
       {isLoading.current ? (
-        "carregando"
+        <Skeleton />
       ) : (
         <>
-          <section className="container relative mx-auto mt-14 mb-8 flex h-4/5 flex-col justify-between xl:max-w-7xl">
-            <div className="space-y-12">
+          <section className="container relative mx-auto mt-14 mb-8 flex flex-col justify-between xl:h-[85%] xl:max-w-7xl 2xl:h-4/5">
+            <div className="space-y-2 2xl:space-y-12">
               <h1 className="text-end text-4xl font-semibold text-almostWhite">
                 NCLS
               </h1>
@@ -99,7 +126,9 @@ function App() {
                   openInfo ? "-translate-y-12 opacity-0" : "translate-y-0"
                 } transition duration-300`}
               >
-                <Quotes />
+                <div className="quotes">
+                  <Quotes />
+                </div>
               </div>
             </div>
 
@@ -109,7 +138,7 @@ function App() {
                 <div className="flex items-center">
                   <img
                     src={greetingMessage() == "Boa Noite" ? moon : sun}
-                    alt=""
+                    alt="timeIcon"
                     className="mr-4 h-8 w-8"
                   />
                   <span className="text-xl uppercase tracking-wide">
@@ -118,7 +147,7 @@ function App() {
                 </div>
 
                 <div className="flex items-center">
-                  <h1 className="text-[12rem] font-bold leading-[13rem]">
+                  <h1 className="text-[9rem] font-bold leading-[10rem] 2xl:text-[12rem] 2xl:leading-[13rem]">
                     {horaAtual}
                   </h1>
                   <span className="ml-3 pt-24  text-2xl font-medium">
@@ -137,7 +166,7 @@ function App() {
                 onClick={() => setOpenInfo((prev) => !prev)}
                 className={`flex h-14 ${
                   openInfo ? " w-44 " : "w-36"
-                } items-center justify-center rounded-full bg-almostWhite transition-all`}
+                } items-center justify-center rounded-full bg-almostWhite outline-none transition-all`}
               >
                 <p className="font-semibold uppercase tracking-wider text-gray-400">
                   {openInfo ? "Menos" : "Mais"}
@@ -153,11 +182,11 @@ function App() {
 
           {/* Mais Informações */}
           <section
-            className={` ${
-              openInfo ? "flex" : "hidden"
-            } infoContainer flex h-3/4 w-full items-center bg-orange-100/70 backdrop-blur-md`}
+            className={`infoContainer absolute bottom-0 flex h-[45vh] w-full items-center bg-orange-100/70 opacity-0 ${
+              openInfo ? "flex" : "opacity-0"
+            }  backdrop-blur-md`}
           >
-            <div className="container mx-auto grid grid-cols-2 gap-24 text-left xl:max-w-7xl">
+            <div className="container mx-auto grid grid-cols-2 gap-12 text-left xl:max-w-7xl 2xl:gap-24">
               <div>
                 <span className="font-thin uppercase tracking-wider text-almostBlack">
                   Timezone Atual
