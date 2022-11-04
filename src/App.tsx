@@ -5,11 +5,11 @@ import sun from "./assets/sun.svg";
 import moon from "./assets/moon.svg";
 import downArrow from "./assets/downArrow.svg";
 import upArrow from "./assets/upArrow.svg";
-import Flip from "gsap/Flip";
 
 import axios from "axios";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Skeleton } from "./components/Skelekton";
+import useIsFirstRender from "./hooks/useIsFirstRender";
 
 type LocationInfos = {
   utc: string;
@@ -27,12 +27,12 @@ function App() {
   const [horaAtual, setHoraAtual] = useState<string>();
 
   const isLoading = useRef(true);
+  const isFirstRender = useIsFirstRender();
 
   const options: Intl.DateTimeFormatOptions = {
     hour: "numeric",
     minute: "numeric",
   };
-  console.log(isLoading.current);
 
   const handleLocation = async () => {
     isLoading.current = true;
@@ -58,9 +58,25 @@ function App() {
     isLoading.current = false;
   };
 
+  useEffect(() => {
+    handleLocation();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHoraAtual(new Date().toLocaleTimeString("pt-br", options));
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const tl = useRef<GSAPTimeline | null>(null);
-  const app = useRef();
+
+  const app = useRef(null);
+
   useLayoutEffect(() => {
+    if (isFirstRender) return;
+
     const ctx = gsap.context(() => {
       gsap.set(".infoContainer", { yPercent: 100, opacity: 1 });
       tl.current = gsap
@@ -71,29 +87,19 @@ function App() {
           },
         })
         .to(".infoContainer", { yPercent: 0 })
-        .to(".clockContainer", { y: "-40vh" }, "<")
+        .to(".clockContainer", { y: "-30vh" }, "<")
         .to(".quotes", { y: -100, opacity: 0 }, "<")
         .reverse();
     }, app);
+
     return () => ctx.revert();
-  }, []);
+  }, [locationInfo]);
 
   useLayoutEffect(() => {
+    if (isFirstRender) return;
+
     tl.current!.reversed(!openInfo);
   }, [openInfo]);
-
-  useEffect(() => {
-    handleLocation();
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setHoraAtual(new Date().toLocaleTimeString("pt-br", options));
-      console.log(horaAtual);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const greetingMessage = () => {
     const hora = new Date().getHours();
@@ -109,14 +115,14 @@ function App() {
 
   return (
     <main
-      className="flex h-screen flex-col overflow-y-hidden bg-orange-900/30"
+      className="relative flex h-screen flex-col overflow-y-hidden bg-orange-900/30"
       ref={app}
     >
       {isLoading.current ? (
         <Skeleton />
       ) : (
         <>
-          <section className="container relative mx-auto mt-14 mb-8 flex flex-col justify-between xl:h-[85%] xl:max-w-7xl 2xl:h-4/5">
+          <section className="container relative mx-auto mt-14 mb-8 flex h-4/5 flex-col justify-between xl:max-w-7xl">
             <div className="space-y-2 2xl:space-y-12">
               <h1 className="text-end text-4xl font-semibold text-almostWhite">
                 NCLS
@@ -150,7 +156,7 @@ function App() {
                   <h1 className="text-[9rem] font-bold leading-[10rem] 2xl:text-[12rem] 2xl:leading-[13rem]">
                     {horaAtual}
                   </h1>
-                  <span className="ml-3 pt-24  text-2xl font-medium">
+                  <span className="ml-3 pt-24 text-2xl font-medium">
                     GMT{locationInfo!.utc}
                   </span>
                 </div>
@@ -181,11 +187,7 @@ function App() {
           </section>
 
           {/* Mais Informações */}
-          <section
-            className={`infoContainer absolute bottom-0 flex h-[45vh] w-full items-center bg-orange-100/70 opacity-0 ${
-              openInfo ? "flex" : "opacity-0"
-            }  backdrop-blur-md`}
-          >
+          <section className="infoContainer absolute  bottom-0 flex h-[40vh] w-full items-center bg-orange-100/70 opacity-0   backdrop-blur-md">
             <div className="container mx-auto grid grid-cols-2 gap-12 text-left xl:max-w-7xl 2xl:gap-24">
               <div>
                 <span className="font-thin uppercase tracking-wider text-almostBlack">
