@@ -10,6 +10,7 @@ import axios from "axios";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Skeleton } from "./components/Skelekton";
 import useIsFirstRender from "./hooks/useIsFirstRender";
+import { MenuOptions } from "./components/Menu";
 
 type LocationInfos = {
   utc: string;
@@ -21,6 +22,7 @@ type LocationInfos = {
 
 function App() {
   const [openInfo, setOpenInfo] = useState(false);
+  const [openMenu, setOpenMenu] = useState(false);
 
   const [locationInfo, setLocationInfo] = useState<LocationInfos>();
 
@@ -57,6 +59,7 @@ function App() {
 
     isLoading.current = false;
   };
+  console.log(openMenu)
 
   useEffect(() => {
     handleLocation();
@@ -71,6 +74,7 @@ function App() {
   }, []);
 
   const tl = useRef<GSAPTimeline | null>(null);
+  const tlMenu = useRef<GSAPTimeline | null>(null);
 
   const app = useRef(null);
 
@@ -78,6 +82,7 @@ function App() {
     if (isFirstRender) return;
 
     const ctx = gsap.context(() => {
+      // More info container Opening animation
       gsap.set(".infoContainer", { yPercent: 100, opacity: 1 });
       tl.current = gsap
         .timeline({
@@ -90,6 +95,19 @@ function App() {
         .to(".clockContainer", { y: "-30vh" }, "<")
         .to(".quotes", { y: -100, opacity: 0 }, "<")
         .reverse();
+
+      // Menu Animation Opening
+      gsap.set(".menu", { yPercent: -10 });
+      tlMenu.current = gsap
+        .timeline({
+          paused: true,
+          defaults: {
+            ease: "power3.inOut",
+          },
+        })
+        .to(".menu", { yPercent: 10, opacity: 1 })
+        .reverse()
+
     }, app);
 
     return () => ctx.revert();
@@ -99,7 +117,8 @@ function App() {
     if (isFirstRender) return;
 
     tl.current!.reversed(!openInfo);
-  }, [openInfo]);
+    tlMenu.current!.reversed(!openMenu);
+  }, [openInfo, openMenu]);
 
   const greetingMessage = () => {
     const hora = new Date().getHours();
@@ -107,10 +126,10 @@ function App() {
     return hora! < 5
       ? "Boa Madrugada"
       : hora! < 12
-      ? "Bom Dia"
-      : hora! < 18
-      ? "Boa Tarde"
-      : "Boa Noite";
+        ? "Bom Dia"
+        : hora! < 18
+          ? "Boa Tarde"
+          : "Boa Noite";
   };
 
   return (
@@ -124,17 +143,12 @@ function App() {
         <>
           <section className="container relative mx-auto mt-14 mb-8 flex h-4/5 flex-col justify-between xl:max-w-7xl">
             <div className="space-y-2 2xl:space-y-12">
-              <h1 className="text-end text-4xl font-semibold text-almostWhite">
-                NCLS
-              </h1>
-              <div
-                className={`${
-                  openInfo ? "-translate-y-12 opacity-0" : "translate-y-0"
-                } transition duration-300`}
-              >
-                <div className="quotes">
-                  <Quotes />
-                </div>
+              <div className="flex flex-col w-full relative items-end">
+
+                <MenuOptions setOpenMenu={setOpenMenu} />
+              </div>
+              <div className="quotes">
+                <Quotes />
               </div>
             </div>
 
@@ -170,9 +184,8 @@ function App() {
 
               <button
                 onClick={() => setOpenInfo((prev) => !prev)}
-                className={`flex h-14 ${
-                  openInfo ? " w-44 " : "w-36"
-                } items-center justify-center rounded-full bg-almostWhite outline-none transition-all`}
+                className={`flex h-14 ${openInfo ? " w-44 " : "w-36"
+                  } items-center justify-center rounded-full bg-almostWhite outline-none transition-all`}
               >
                 <p className="font-semibold uppercase tracking-wider text-gray-400">
                   {openInfo ? "Menos" : "Mais"}
@@ -187,7 +200,7 @@ function App() {
           </section>
 
           {/* Mais Informações */}
-          <section className="infoContainer absolute  bottom-0 flex h-[40vh] w-full items-center bg-orange-100/70 opacity-0   backdrop-blur-md">
+          <section className="infoContainer absolute bottom-0 flex h-[40vh] w-full items-center bg-orange-100/70 opacity-0 backdrop-blur-md">
             <div className="container mx-auto grid grid-cols-2 gap-12 text-left xl:max-w-7xl 2xl:gap-24">
               <div>
                 <span className="font-thin uppercase tracking-wider text-almostBlack">
