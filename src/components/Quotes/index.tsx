@@ -10,7 +10,7 @@ export const Quotes = () => {
   const generateQuote = () => {
     isLoadingQuote.current = true;
     axios
-      .get("http://allugofrases.herokuapp.com/frases/random")
+      .get("https://allugofrases.herokuapp.com/frases/random")
       .then(
         ({ data: response }) => (
           setQuote(response.frase),

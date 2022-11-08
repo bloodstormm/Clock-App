@@ -41,7 +41,7 @@ function App() {
 
     // API com os resultados
     const { data: response } = await axios.get(
-      `http://worldtimeapi.org/api/ip/`
+      `https://worldtimeapi.org/api/ip/`
     );
 
     console.log(response);
