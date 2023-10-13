@@ -27,6 +27,7 @@ function App() {
   const [locationInfo, setLocationInfo] = useState<LocationInfos>();
 
   const [horaAtual, setHoraAtual] = useState<string>();
+  const [backgroundImage, setBackgroundImage] = useState<string>();
 
   const isLoading = useRef(true);
   const isFirstRender = useIsFirstRender();
@@ -59,9 +60,18 @@ function App() {
 
     isLoading.current = false;
   };
-  console.log(openMenu)
+
+  const handleBackgroundImage = async () => {
+    const { data: response } = await axios.get(
+      `https://api.unsplash.com/photos/random?client_id=9L8T96uOkV4rscez8vOL42-Cfb-NtkzHbkshWzC571A`
+    );
+
+    setBackgroundImage(`'${response.urls.full}'`);
+    console.log(backgroundImage);
+  };
 
   useEffect(() => {
+    handleBackgroundImage();
     handleLocation();
   }, []);
 
@@ -106,8 +116,7 @@ function App() {
           },
         })
         .to(".menu", { yPercent: 10, opacity: 1 })
-        .reverse()
-
+        .reverse();
     }, app);
 
     return () => ctx.revert();
@@ -126,15 +135,21 @@ function App() {
     return hora! < 5
       ? "Boa Madrugada"
       : hora! < 12
-        ? "Bom Dia"
-        : hora! < 18
-          ? "Boa Tarde"
-          : "Boa Noite";
+      ? "Bom Dia"
+      : hora! < 18
+      ? "Boa Tarde"
+      : "Boa Noite";
   };
 
   return (
     <main
-      className="relative flex h-screen flex-col overflow-y-hidden bg-orange-900/30"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+      className={`bg-im relative flex h-screen flex-col overflow-y-hidden bg-orange-900/30`}
       ref={app}
     >
       {isLoading.current ? (
@@ -143,9 +158,11 @@ function App() {
         <>
           <section className="container relative mx-auto mt-14 mb-8 flex h-4/5 flex-col justify-between xl:max-w-7xl">
             <div className="space-y-2 2xl:space-y-12">
-              <div className="flex flex-col w-full relative items-end">
-
-                <MenuOptions setOpenMenu={setOpenMenu} />
+              <div className="relative flex w-full flex-col items-end">
+                <MenuOptions
+                  setOpenMenu={setOpenMenu}
+                  handleBackgroundImage={handleBackgroundImage}
+                />
               </div>
               <div className="quotes">
                 <Quotes />
@@ -184,8 +201,9 @@ function App() {
 
               <button
                 onClick={() => setOpenInfo((prev) => !prev)}
-                className={`flex h-14 ${openInfo ? " w-44 " : "w-36"
-                  } items-center justify-center rounded-full bg-almostWhite outline-none transition-all`}
+                className={`flex h-14 ${
+                  openInfo ? " w-44 " : "w-36"
+                } items-center justify-center rounded-full bg-almostWhite outline-none transition-all`}
               >
                 <p className="font-semibold uppercase tracking-wider text-gray-400">
                   {openInfo ? "Menos" : "Mais"}
@@ -200,7 +218,7 @@ function App() {
           </section>
 
           {/* Mais Informações */}
-          <section className="infoContainer absolute bottom-0 flex h-[40vh] w-full items-center bg-orange-100/70 opacity-0 backdrop-blur-md">
+          <section className="infoContainer absolute bottom-0 flex h-[40vh] w-full items-center bg-orange-100/50 opacity-0 backdrop-blur-md">
             <div className="container mx-auto grid grid-cols-2 gap-12 text-left xl:max-w-7xl 2xl:gap-24">
               <div>
                 <span className="font-thin uppercase tracking-wider text-almostBlack">
@@ -223,7 +241,7 @@ function App() {
                   Dia da semana
                 </span>
                 <h3 className="pt-4 text-5xl font-bold text-almostBlack">
-                  {locationInfo!.diaSemana}
+                  {locationInfo!.diaSemana + 1}
                 </h3>
               </div>
               <div>

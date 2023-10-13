@@ -9,21 +9,23 @@ export const Quotes = () => {
 
   const generateQuote = () => {
     isLoadingQuote.current = true;
-    axios
-      .get("https://allugofrases.herokuapp.com/frases/random")
-      .then(
-        ({ data: response }) => (
-          setQuote(response.frase),
-          setAuthor(response.autor),
-          (isLoadingQuote.current = false)
+    console.log(isLoadingQuote),
+      axios
+        .get("https://api.adviceslip.com/advice")
+        .then(
+          ({ data: response }) => (
+            console.log(response),
+            setQuote(response.slip.advice),
+            setAuthor(response.autor),
+            (isLoadingQuote.current = false)
+          )
         )
-      )
-      .catch(
-        (err) => (
-          setQuote("Erro ao carregar a citação! -> " + err),
-          (isLoadingQuote.current = false)
-        )
-      );
+        .catch(
+          (err) => (
+            setQuote("Erro ao carregar a citação! -> " + err),
+            (isLoadingQuote.current = false)
+          )
+        );
   };
 
   useEffect(() => {
@@ -39,15 +41,11 @@ export const Quotes = () => {
           <div className="mt-6 h-8 w-44 animate-pulse rounded-lg bg-gray-200" />
         </div>
       ) : (
-        <div className="relative mt-10 max-w-md text-almostWhite">
+        <div className="relative mt-10 flex max-w-lg text-almostWhite">
           <p className="leading-relaxed">"{quote}"</p>
-          <button
-            className="absolute right-10 bottom-0"
-            onClick={generateQuote}
-          >
+          <button className="ml-4" onClick={generateQuote}>
             <img src={refresh} alt="" className="h-5 w-5" />
           </button>
-          <h3 className="mt-8 font-semibold">{author}</h3>
         </div>
       )}
     </>

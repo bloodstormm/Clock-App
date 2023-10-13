@@ -7,6 +7,6 @@
 }
 
 body {
-    @apply bg-[url(./assets/bgDay.jpg)] bg-cover bg-center bg-no-repeat overflow-y-hidden;
+    @apply  bg-cover bg-center bg-no-repeat overflow-y-hidden;
     
 }
